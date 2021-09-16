@@ -1,0 +1,279 @@
+---
+title: <span style="color:green"> Casen 2006-2020 **regresión logística**</span>
+author:
+- name: VE-CC-AJ
+  affiliation: DataIntelligence
+subtitle: | 
+  #
+header-includes:
+   - \usepackage[]{babel}
+output:
+  rmdformats::html_clean:
+    highlight: kate
+    toc: true
+    use_bookdown: true
+    code_folding: "hide"    
+---
+
+date: `r format(Sys.time(), "%d-%m-%Y")`
+<style type="text/css">
+.main-container {
+  max-width: 1600px;
+  margin-left: 100px;
+  margin-right: auto;
+}
+</style>
+
+```{r , message=FALSE, warning=FALSE, include = FALSE, eecho = FALSE}
+
+#suppressWarnings(library(RODBC))
+
+library(ggplot2)
+library(ggpubr)
+library(markdown)
+library(shiny)
+library(shinythemes)
+library(tidyverse)
+library(magrittr)
+library(lubridate)
+library(plotly)
+library(xts)
+library(dygraphs)
+library(kableExtra)
+library(knitr)
+library("readxl")
+library(rsconnect)
+library(dplyr)
+library(summarytools)
+library(epiDisplay)
+#library(leaflet)
+library(haven)
+library(epiDisplay)
+library("readxl")
+library(expss)
+library(hrbrthemes)
+library(viridis)
+library(viridisLite)
+library(DescTools)
+library(roperators)
+library(shinycssloaders)
+library(writexl)
+library(labelled)
+library(tidyverse)
+library(haven)
+library(readr)
+library(sjmisc)
+library(WriteXLS)
+
+library(ineq)
+library(readstata13)
+library(reldist)
+
+library(DT)
+library(caTools)
+```
+
+# Introducción
+
+Por alguna extraña razón la Casen del 2020 no contiene la variable que identifica el alfabetismo de las personas, el cual históricamente desde el 2000 al 2017 se ha mantenido bajo el 4%. Lo necesitamos. Nuestra metodología será aplicar una regresión logística sobre alguno de los ingresos, el nivel educacional alcanzado y la ruralidad para construir el **clasificador**. 
+
+Las variables utilizadas serán ("e6a","zona","yaut", "ysub", "ytot", "ytrabajocor","ytrabajocorh", "yoprcorh","yoprcor","ymonecorh","e1") que extraemos de la Casen del 2017 sobre los campos mencionados dándonos una exactitud del 0.9223803	
+
+# <span style="color:blue">Regresión logística</span>
+
+```{r}
+# casen_2006 <- readRDS(file = "C:/Users/enamo/Desktop/Shiny-R/Casen_en_pandemia_2020/casen/casen_2006_c.rds")
+# casen_2009 <- readRDS(file = "C:/Users/enamo/Desktop/Shiny-R/Casen_en_pandemia_2020/casen/casen_2009_c.rds")
+# casen_2011 <- readRDS(file = "C:/Users/enamo/Desktop/Shiny-R/Casen_en_pandemia_2020/casen/casen_2011_c.rds")
+# casen_2013 <- readRDS(file = "C:/Users/enamo/Desktop/Shiny-R/Casen_en_pandemia_2020/casen/casen_2013_c.rds")
+# casen_2015 <- readRDS(file = "C:/Users/enamo/Desktop/Shiny-R/Casen_en_pandemia_2020/casen/casen_2015_c.rds")
+casen_2017 <- readRDS(file = "C:/Users/enamo/Desktop/Shiny-R/Casen_en_pandemia_2020/casen/casen_2017_c.rds")
+casen_2020 <- readRDS(file = "C:/Users/enamo/Desktop/Shiny-R/Casen_en_pandemia_2020/casen/casen_2020.rds")
+```
+
+## Tratamiento sobre la Casen del 2017
+
+Como construímos el modelo sobre la Casen 2017, categorizamos las respuestas a alfabetismo y las de zona y educación las convertimos a numérico.
+ 
+
+```{r, warning=FALSE}
+
+data_2017 <- casen_2017[,c("e6a","zona","yaut", "ysub", "ytot", "ytrabajocor","ytrabajocorh", "yoprcorh","yoprcor","ymonecorh","e1")]
+data_2017 [is.na(data_2017 )] <- 0
+
+datatable(head(data_2017,5), escape = FALSE, rownames = FALSE,
+          options = list( scrollX = TRUE))
+```
+
+ 
+
+Ahora podemos ver nuestra base de datos corregida sobre la cual podemos trabajar
+
+```{r}
+data_2017$e1 <- as.character(data_2017$e1)
+data_2017$e1[data_2017$e1 == 'Sí, lee y escribe'] <- 1
+data_2017$e1[data_2017$e1 == 'No, sólo lee'] <- 0
+data_2017$e1[data_2017$e1 == 'No sabe/responde'] <- 0
+data_2017$e1[data_2017$e1 == 'No, ninguno'] <-0
+data_2017$e1[data_2017$e1 == 'No, sólo escribe'] <- 0
+data_2017$e1[is.na(data_2017$e1)] <- 0
+data_2017 <- mutate_if(data_2017, is.factor, as.numeric)
+dataset <- data_2017
+dataset$e1 <- as.numeric(dataset$e1)
+datatable(head(dataset,5), escape = FALSE, rownames = FALSE,
+          options = list( scrollX = TRUE))
+
+```
+ 
+
+## EL MODELO
+
+Los resultados de los tests a nuestro modelo nos entregan las siguientes cifras:
+              
+```{r, warning=FALSE}
+set.seed(123)
+
+# division aleatoria de sets
+split = sample.split(dataset$e1, SplitRatio = 0.8)
+training_set = subset(dataset, split == TRUE)
+testing_set = subset(dataset, split == FALSE)
+
+# estandarizacion
+training_set[,1:10] = scale(training_set[,1:10])
+testing_set[,1:10] = scale(testing_set[,1:10])
+ 
+# generacion el clasificador
+classifier = glm(formula = e1 ~ .,
+                 data = training_set, 
+                 family = binomial)
+
+# Prediccion de los data_2017ados con el conjunto de testing
+prob_pred = predict(classifier, type = "response",
+                    newdata = testing_set[,-13])
+
+y_pred = ifelse(prob_pred > 0.5, 1, 0)
+
+# Crear la matriz de confusion
+cm = table(testing_set[, 11], y_pred)
+cm <- as.data.frame(cm)
+cm <- as.data.table(cm)
+cm
+```
+ 
+
+1 vn
+2 fn
+3 fp
+4 vp
+
+### Exactitud (Acurracy)
+En general, que porcentage de la data clasifica correctamente?
+
+```{r}
+(cm[4,3]+cm[1,3])/sum(cm$Freq)
+```
+
+### Tasa de error (Misclassification Rate)
+En general, que porcentage de la data clasifica incorrectamente? 
+
+```{r}
+(cm[3,3]+cm[2,3])/sum(cm$Freq)
+```
+
+### Sensibilidad, exhaustividad, Tasa de verdaderos positivos
+Cuando la clase es positiva, que porcentaje logra clasificar?
+
+tp/(tp+fn)
+
+```{r}
+(cm[4,3])/sum(cm[4,3]+cm[2,3])
+```
+
+### Especificidad, tasa de verdaderos negativos
+Cuando la clase es negativa, que porcentaje logra clasificar?
+tn/tn+fp
+
+```{r}
+(cm[1,3])/sum(cm[1,3]+cm[3,3])
+```
+
+### Precisión
+Cuando predice positivos, que porcentaje clasifica correctamente?
+vp/Total clasificados positivos
+
+```{r}
+(cm[4,3])/sum(cm[3,3]+cm[4,3])
+```
+
+### Valor de predicción negativo 
+Cuando predice negativo, que porcentage clasifica correctamente?
+
+vn/Total clasificados negativo
+
+```{r}
+(cm[1,3])/sum(cm[2,3]+cm[1,3])
+```
+
+## Implementacion
+
+```{r, warning=FALSE}
+data_2017_2020 <- casen_2020[,c("e6a","zona","yaut", "ysub", "ytot", "ytrabajocor","ytrabajocorh", "yoprcorh","yoprcor","ymonecorh")]
+data_2017_2020[is.na(data_2017_2020)] <- 0
+
+data_2017_2020 <- mutate_if(data_2017_2020, is.factor, as.numeric)
+ 
+# Prediccion de los data_2017ados con el conjunto de testing
+prob_pred = predict(classifier, type = "response",
+                   data_2017_2020)
+
+y_pred = ifelse(prob_pred > 0.5, 1, 0)
+ 
+data_2017_2020$e1 <- y_pred
+
+datatable(head(data_2017_2020,10), escape = FALSE, rownames = FALSE,
+          options = list( scrollX = TRUE))
+
+```
+
+```{r}
+data_2017_2020
+casen_2020
+```
+
+```{r}
+data_2020c <- casen_2020 
+data_2020c$e1 <- data_2017_2020$e1
+
+saveRDS(data_2020c,"C:/Users/enamo/Desktop/Shiny-R/Casen_en_pandemia_2020/casen/casen_2020_c.rds")
+```
+
+```{r}
+valores <- table(data_2017_2020$e1)
+valores
+```
+```{r}
+analfa<- valores[1]*100/sum(valores[1],valores[2])
+analfa
+alfa <- valores[2]*100/sum(valores[1],valores[2])
+alfa
+```
+ 
+
+ 
+19.000.000
+
+```{r}
+(analfa*19000000)/100
+```
+
+
+<a href="https://rpubs.com/chzelada/275494">Evaluación de modelos de clasificación Carlos Zelada</a>
+
+<a href="https://www.cronicadigital.cl/2020/09/08/mas-de-medio-millon-de-chilenos-son-analfabetos/">Analfabetismo en Chile</a>
+
+<a href="https://en.wikipedia.org/wiki/Confusion_matrix">Confusion matrix</a>
+
+
+
+
+
