@@ -85,15 +85,19 @@ Las variables utilizadas serán ("e6a","zona","yaut", "ysub", "ytot", "ytrabajoc
 # casen_2006 <- readRDS(file = "C:/Users/enamo/Desktop/Shiny-R/Casen_en_pandemia_2020/casen/casen_2006_c.rds")
 # casen_2009 <- readRDS(file = "C:/Users/enamo/Desktop/Shiny-R/Casen_en_pandemia_2020/casen/casen_2009_c.rds")
 # casen_2011 <- readRDS(file = "C:/Users/enamo/Desktop/Shiny-R/Casen_en_pandemia_2020/casen/casen_2011_c.rds")
-# casen_2013 <- readRDS(file = "C:/Users/enamo/Desktop/Shiny-R/Casen_en_pandemia_2020/casen/casen_2013_c.rds")
-# casen_2015 <- readRDS(file = "C:/Users/enamo/Desktop/Shiny-R/Casen_en_pandemia_2020/casen/casen_2015_c.rds")
+casen_2015 <- readRDS(file = "C:/Users/chris/OneDrive/Documentos/archivos_grandes/casen_2015_c.rds")
 casen_2017 <- readRDS(file = "C:/Users/chris/OneDrive/Documentos/archivos_grandes/casen_2017_c.rds")
 casen_2020 <- readRDS(file = "C:/Users/chris/OneDrive/Documentos/archivos_grandes/casen2020.rds")
 ```
 
 ## Tratamiento sobre la Casen del 2017
 
-Como construímos el modelo sobre la Casen 2017, categorizamos las respuestas a alfabetismo y las de zona y educación las convertimos a numérico.
+Como construímos el modelo sobre la Casen 2017, introducimos 8 variables de ingreso, una de ruralidad, una de nivel educativo y otra de pobreza.
+
+
+las convertimos a numérico.
+ 
+
  
 
 ```{r, warning=FALSE}
@@ -149,9 +153,9 @@ classifier = glm(formula = e1 ~ .,
 
 # Prediccion de los data_2017ados con el conjunto de testing
 prob_pred = predict(classifier, type = "response",
-                    newdata = testing_set[,-13])
+                    newdata = testing_set[,-11])
 
-y_pred = ifelse(prob_pred > 0.5, 1, 0)
+y_pred = ifelse(prob_pred > 0.455, 1, 0)
 
 # Crear la matriz de confusion
 cm = table(testing_set[, 11], y_pred)
@@ -214,6 +218,13 @@ vn/Total clasificados negativo
 (cm[1,3])/sum(cm[2,3]+cm[1,3])
 ```
 
+
+
+
+
+
+
+
 ## Implementacion
 
 ```{r, warning=FALSE}
@@ -226,7 +237,7 @@ data_2017_2020 <- mutate_if(data_2017_2020, is.factor, as.numeric)
 prob_pred = predict(classifier, type = "response",
                    data_2017_2020)
 
-y_pred = ifelse(prob_pred > 0.5, 1, 0)
+y_pred = ifelse(prob_pred >  0.455, 1, 0)
  
 data_2017_2020$e1 <- y_pred
 
@@ -236,15 +247,15 @@ datatable(head(data_2017_2020,10), escape = FALSE, rownames = FALSE,
 ```
 
 ```{r}
-data_2017_2020
-casen_2020
+# data_2017_2020
+# casen_2020
 ```
 
 ```{r}
-data_2020c <- casen_2020 
-data_2020c$e1 <- data_2017_2020$e1
-
-saveRDS(data_2020c,"C:/Users/enamo/Desktop/Shiny-R/Casen_en_pandemia_2020/casen/casen_2020_c.rds")
+# data_2020c <- casen_2020 
+# data_2020c$e1 <- data_2017_2020$e1
+# 
+# saveRDS(data_2020c,"C:/Users/enamo/Desktop/Shiny-R/Casen_en_pandemia_2020/casen/casen_2020_c.rds")
 ```
 
 ```{r}
@@ -258,8 +269,8 @@ alfa <- valores[2]*100/sum(valores[1],valores[2])
 alfa
 ```
  
+poblacion 2020 Chile. Cantidad de analfabetos:
 
- 
 19.000.000
 
 ```{r}
@@ -272,6 +283,132 @@ alfa
 <a href="https://www.cronicadigital.cl/2020/09/08/mas-de-medio-millon-de-chilenos-son-analfabetos/">Analfabetismo en Chile</a>
 
 <a href="https://en.wikipedia.org/wiki/Confusion_matrix">Confusion matrix</a>
+
+
+# Set de pruebas
+
+Tenemos un clasificador construído para el 2017 pero vamos a calcular su presición para el 2015:
+
+## Implementacion 2015
+
+```{r}
+ casen_2015$ymo
+```
+
+
+
+```{r, warning=FALSE}
+data_2015w <- casen_2015[,c("e6a","zona","yaut", "ysub", "ytot", "ytrabajoCor","ytrabajoCorh", "yoprCorh","yoprCor","ymoneCorh","e1")]
+
+names(data_2015w)[6] <- "ytrabajocor"
+names(data_2015w)[7] <- "ytrabajocorh"
+names(data_2015w)[8] <- "yoprcorh"
+names(data_2015w)[9] <- "yoprcor"
+names(data_2015w)[10] <- "ymonecorh"
+
+
+
+
+
+
+
+data_2015w[is.na(data_2015w)] <- 0
+
+
+data_2015w$e1 <- as.character(data_2015w$e1)
+data_2015w$e1[data_2015w$e1 == 'Sí, lee y escribe'] <- 1
+data_2015w$e1[data_2015w$e1 == 'No, sólo lee'] <- 0
+data_2015w$e1[data_2015w$e1 == 'No sabe/responde'] <- 0
+data_2015w$e1[data_2015w$e1 == 'No, ninguno'] <-0
+data_2015w$e1[data_2015w$e1 == 'No, sólo escribe'] <- 0
+data_2015w$e1[is.na(data_2015w$e1)] <- 0
+
+
+data_2015w <- mutate_if(data_2015w, is.factor, as.numeric)
+ 
+# Prediccion de los data_2017ados con el conjunto de testing
+prob_pred = predict(classifier, type = "response",
+                   data_2015w)
+
+y_pred = ifelse(prob_pred >  0.455, 1, 0)
+ 
+data_2015w$e1_pred <- y_pred
+
+datatable(head(data_2015w,10), escape = FALSE, rownames = FALSE,
+          options = list( scrollX = TRUE))
+
+```
+
+
+```{r}
+cm = table(data_2015w$e1, data_2015w$e1_pred)
+cm <- as.data.frame(cm)
+cm <- as.data.table(cm)
+cm
+```
+
+### Exactitud (Acurracy)
+En general, que porcentage de la data clasifica correctamente?
+
+```{r}
+(cm[4,3]+cm[1,3])/sum(cm$Freq)
+```
+
+### Tasa de error (Misclassification Rate)
+En general, que porcentaje de la data clasifica incorrectamente? 
+
+```{r}
+(cm[3,3]+cm[2,3])/sum(cm$Freq)
+```
+
+### Sensibilidad, exhaustividad, Tasa de verdaderos positivos
+Cuando la clase es positiva, que porcentaje logra clasificar?
+
+tp/(tp+fn)
+
+```{r}
+(cm[4,3])/sum(cm[4,3]+cm[2,3])
+```
+
+### Especificidad, tasa de verdaderos negativos
+Cuando la clase es negativa, que porcentaje logra clasificar?
+tn/tn+fp
+
+```{r}
+(cm[1,3])/sum(cm[1,3]+cm[3,3])
+```
+
+### Precisión
+Cuando predice positivos, que porcentaje clasifica correctamente?
+vp/Total clasificados positivos
+
+```{r}
+(cm[4,3])/sum(cm[3,3]+cm[4,3])
+```
+
+### Valor de predicción negativo 
+Cuando predice negativo, que porcentage clasifica correctamente?
+
+vn/Total clasificados negativo
+
+```{r}
+(cm[1,3])/sum(cm[2,3]+cm[1,3])
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
