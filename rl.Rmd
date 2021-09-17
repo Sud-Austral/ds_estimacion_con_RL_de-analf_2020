@@ -88,7 +88,7 @@ Las variables utilizadas serán ("e6a","zona","yaut", "ysub", "ytot", "ytrabajoc
 # casen_2013 <- readRDS(file = "C:/Users/enamo/Desktop/Shiny-R/Casen_en_pandemia_2020/casen/casen_2013_c.rds")
 # casen_2015 <- readRDS(file = "C:/Users/enamo/Desktop/Shiny-R/Casen_en_pandemia_2020/casen/casen_2015_c.rds")
 casen_2017 <- readRDS(file = "C:/Users/chris/OneDrive/Documentos/archivos_grandes/casen_2017_c.rds")
-casen_2020 <- readRDS(file = "C:/Users/chris/OneDrive/Documentos/archivos_grandes/casen_2020.rds")
+casen_2020 <- readRDS(file = "C:/Users/chris/OneDrive/Documentos/archivos_grandes/casen2020.rds")
 ```
 
 ## Tratamiento sobre la Casen del 2017
