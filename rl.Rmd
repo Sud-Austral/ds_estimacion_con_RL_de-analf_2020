@@ -79,7 +79,7 @@ library(caTools)
 
 Por alguna extraña razón la Casen del 2020 no contiene la variable que identifica el alfabetismo de las personas, el cual históricamente desde el 2006 al 2017 se ha mantenido bajo el 4%. Lo necesitamos. Nuestra metodología será aplicar una regresión logística sobre alguno de los ingresos, el nivel educacional alcanzado y la ruralidad para construir un **clasificador**, cuyo objetivo será para el año 2020 construir en términos binarios la estructura de la respuesta al alfabetismo.
 
-Como resultado final obtenemos que la tasa de analfabetismo para el 2020 está estimado en un 3,402% de anafabetismo, representando a unas 663.436 personas. La **cifra oficial** es de Un total de 516 mil 960 personas en Chile que no saben leer ni escribir [^1](publicación con motivo del Día Internacional de la Alfabetización establecido por la ONU desde 1967).
+Como resultado final obtenemos que la tasa de analfabetismo para el 2020 está estimado en un 3,402% de anafabetismo, representando a unas 663.436 personas. La **cifra oficial** es de Un total de 516 mil 960 personas en Chile que no saben leer ni escribir[^1](publicación con motivo del Día Internacional de la Alfabetización establecido por la ONU desde 1967).
 
 La Encuesta de Caracterización Socioeconómica Nacional (CASEN) de 2017, que se realiza con una periodicidad trienal, indica que en Chile el 3,7 por ciento de las mujeres mayores de 15 años son analfabetas, mientras que entre los hombres en ese rango de edad el porcentaje es de 3,5 (3.6 en promedio)
 
@@ -202,11 +202,7 @@ tb
 ## Tests de evaluación en predicciones (tablas de contingencia)
 
 
-![](https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png){width='100px'}
-
-
-
-
+![](mc.png){width='1000px'}
 
 
 
@@ -444,6 +440,10 @@ tabla_matp
 ```{r}
 663436 * 100 / (663436	+ 18837026	)
 ```
+
+
+
+[^1]:
 
 <a href="https://rpubs.com/chzelada/275494">Evaluación de modelos de clasificación Carlos Zelada</a>
 
