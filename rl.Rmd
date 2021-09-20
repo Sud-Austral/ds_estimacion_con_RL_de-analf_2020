@@ -79,7 +79,7 @@ library(caTools)
 
 Por alguna extraña razón la Casen del 2020 no contiene la variable que identifica el alfabetismo de las personas, el cual históricamente desde el 2006 al 2017 se ha mantenido bajo el 4%. Lo necesitamos. Nuestra metodología será aplicar una regresión logística sobre alguno de los ingresos, el nivel educacional alcanzado y la ruralidad para construir un **clasificador**, cuyo objetivo será para el año 2020 construir en términos binarios la estructura de la respuesta al alfabetismo.
 
-Como resultado final obtenemos que la tasa de analfabetismo para el 2020 está estimado en un 3,402% de anafabetismo, representando a unas 663.436 personas. La **cifra oficial** es de Un total de 516 mil 960 personas en Chile que no saben leer ni escribir (publicación con motivo del Día Internacional de la Alfabetización establecido por la ONU desde 1967).
+Como resultado final obtenemos que la tasa de analfabetismo para el 2020 está estimado en un 3,402% de anafabetismo, representando a unas 663.436 personas. La **cifra oficial** es de Un total de 516 mil 960 personas en Chile que no saben leer ni escribir[^1](publicación con motivo del Día Internacional de la Alfabetización establecido por la ONU desde 1967).
 
 La Encuesta de Caracterización Socioeconómica Nacional (CASEN) de 2017, que se realiza con una periodicidad trienal, indica que en Chile el 3,7 por ciento de las mujeres mayores de 15 años son analfabetas, mientras que entre los hombres en ese rango de edad el porcentaje es de 3,5 (3.6 en promedio)
 
@@ -184,24 +184,37 @@ e1_pred = ifelse(prob_pred > 0.01, 1, 0)
 
 ```{r, warning=FALSE}
 # matriz de confusion
-cm = table(testing_set[, 8], e1_pred)
-cm <- as.data.frame(cm)
-cm <- as.data.table(cm)
-cm
+tb = table(testing_set[, 8], e1_pred)
+tb <- as.data.frame(tb)
+tb <- as.data.table(tb)
+tb
 ```
 
 ```{r}
 1680		*100/(1680+22		+8127	+33459)
 ```
 
-1 vn 2 fn 3 fp 4 vp
+1 vn\
+2 fn\
+3 fp\
+4 vp
+
+## Tests de evaluación en predicciones (tablas de contingencia)
+
+
+![](mc.png){width='1000px'}
+
+
 
 ### Exactitud (Acurracy)
 
 En general, que porcentage de la data clasifica correctamente?
 
+
+
+
 ```{r}
-(cm[4,3]+cm[1,3])/sum(cm$Freq)
+(tb[4,3]+tb[1,3])/sum(tb$Freq)
 ```
 
 ### Tasa de error (Misclassification Rate)
@@ -209,7 +222,7 @@ En general, que porcentage de la data clasifica correctamente?
 En general, que porcentage de la data clasifica incorrectamente?
 
 ```{r}
-(cm[3,3]+cm[2,3])/sum(cm$Freq)
+(tb[3,3]+tb[2,3])/sum(tb$Freq)
 ```
 
 ### Sensibilidad, exhaustividad, Tasa de verdaderos positivos
@@ -219,7 +232,7 @@ Cuando la clase es positiva, que porcentaje logra clasificar?
 tp/(tp+fn)
 
 ```{r}
-(cm[4,3])/sum(cm[4,3]+cm[2,3])
+(tb[4,3])/sum(tb[4,3]+tb[2,3])
 ```
 
 ### Especificidad, tasa de verdaderos negativos
@@ -229,7 +242,7 @@ Cuando la clase es negativa, que porcentaje logra clasificar?
 tn/tn+fp
 
 ```{r}
-(cm[1,3])/sum(cm[1,3]+cm[3,3])
+(tb[1,3])/sum(tb[1,3]+tb[3,3])
 ```
 
 ### Precisión
@@ -239,7 +252,7 @@ Cuando predice positivos, que porcentaje clasifica correctamente?
 vp/Total clasificados positivos
 
 ```{r}
-(cm[4,3])/sum(cm[3,3]+cm[4,3])
+(tb[4,3])/sum(tb[3,3]+tb[4,3])
 ```
 
 ### Valor de predicción negativo
@@ -249,7 +262,7 @@ Cuando predice negativo, que porcentage clasifica correctamente?
 vn/Total clasificados negativo
 
 ```{r}
-(cm[1,3])/sum(cm[2,3]+cm[1,3])
+(tb[1,3])/sum(tb[2,3]+tb[1,3])
 ```
 
 ### Implementacion para el 2015
@@ -291,10 +304,10 @@ nrow(casen_2015)
 ```
 
 ```{r}
-cm3 = table(data_2015w$e1, data_2015w$e1_pred)
-cm3 <- as.data.frame(cm3)
-cm3 <- as.data.table(cm3)
-cm3
+tb2 = table(data_2015w$e1, data_2015w$e1_pred)
+tb2 <- as.data.frame(tb2)
+tb2 <- as.data.table(tb2)
+tb2
 ```
 
 ```{r}
@@ -306,7 +319,7 @@ cm3
 En general, que porcentage de la data clasifica correctamente?
 
 ```{r}
-(cm3[4,3]+cm3[1,3])/sum(cm3$Freq)
+(tb2[4,3]+tb2[1,3])/sum(tb2$Freq)
 ```
 
 ### Tasa de error (Misclassification Rate)
@@ -314,7 +327,7 @@ En general, que porcentage de la data clasifica correctamente?
 En general, que porcentaje de la data clasifica incorrectamente?
 
 ```{r}
-(cm[3,3]+cm[2,3])/sum(cm$Freq)
+(tb2[3,3]+tb2[2,3])/sum(tb2$Freq)
 ```
 
 ### Sensibilidad, exhaustividad, Tasa de verdaderos positivos
@@ -324,7 +337,7 @@ Cuando la clase es positiva, que porcentaje logra clasificar?
 tp/(tp+fn)
 
 ```{r}
-(cm[4,3])/sum(cm[4,3]+cm[2,3])
+(tb2[4,3])/sum(tb2[4,3]+tb2[2,3])
 ```
 
 ### Especificidad, tasa de verdaderos negativos
@@ -334,7 +347,7 @@ Cuando la clase es negativa, que porcentaje logra clasificar?
 tn/tn+fp
 
 ```{r}
-(cm[1,3])/sum(cm[1,3]+cm[3,3])
+(tb2[1,3])/sum(tb2[1,3]+tb2[3,3])
 ```
 
 ### Precisión
@@ -344,7 +357,7 @@ Cuando predice positivos, que porcentaje clasifica correctamente?
 vp/Total clasificados positivos
 
 ```{r}
-(cm[4,3])/sum(cm[3,3]+cm[4,3])
+(tb2[4,3])/sum(tb2[3,3]+tb2[4,3])
 ```
 
 ### Valor de predicción negativo
@@ -354,7 +367,7 @@ Cuando predice negativo, que porcentage clasifica correctamente?
 vn/Total clasificados negativo
 
 ```{r}
-(cm[1,3])/sum(cm[2,3]+cm[1,3])
+(tb2[1,3])/sum(tb2[2,3]+tb2[1,3])
 ```
 
 ## Implementacion para el año 2020:
@@ -390,7 +403,16 @@ casen_2020$e1 <- data_2017_2020$e1_pred
 datatable(head(casen_2020,5), escape = FALSE, rownames = FALSE,
           options = list( scrollX = TRUE))
 
-saveRDS(casen_2020,"casen_2020_con_e1")
+#saveRDS(casen_2020,"casen_2020_con_e1.rds")
+
+
+casen_2020_1 <- casen_2020[1:1000,1:10]
+
+
+kbl(casen_2020_1) %>%
+  kable_styling(bootstrap_options = c("striped", "hover")) %>%
+  kable_paper() %>%
+  scroll_box(width = "100%", height = "300px")
 ```
 
 ```{r}
@@ -418,6 +440,10 @@ tabla_matp
 ```{r}
 663436 * 100 / (663436	+ 18837026	)
 ```
+
+
+
+[^1]:
 
 <a href="https://rpubs.com/chzelada/275494">Evaluación de modelos de clasificación Carlos Zelada</a>
 
